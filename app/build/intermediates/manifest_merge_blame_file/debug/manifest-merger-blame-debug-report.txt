@@ -1,0 +1,88 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.blockium.tvbrowser"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:6:5-67
+11-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:6:22-64
+12
+13    <!-- Leanback is required for Android TV devices, but setting it to false allows it to run on standard Android devices too -->
+14    <uses-feature
+14-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:9:5-11:36
+15        android:name="android.software.leanback"
+15-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:10:9-49
+16        android:required="false" />
+16-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:11:9-33
+17
+18    <!-- Declare that the app does not require a touchscreen -->
+19    <uses-feature
+19-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:14:5-16:36
+20        android:name="android.hardware.touchscreen"
+20-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:15:9-52
+21        android:required="false" />
+21-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:16:9-33
+22
+23    <application
+23-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:18:5-47:19
+24        android:allowBackup="true"
+24-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:19:9-35
+25        android:debuggable="true"
+26        android:extractNativeLibs="true"
+27        android:hardwareAccelerated="true"
+27-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:23:9-43
+28        android:icon="@mipmap/ic_launcher"
+28-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:20:9-43
+29        android:label="YouTube Ad Blocker"
+29-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:21:9-43
+30        android:supportsRtl="true"
+30-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:22:9-35
+31        android:theme="@android:style/Theme.NoTitleBar" >
+31-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:24:9-56
+32        <activity
+32-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:27:9-46:20
+33            android:name="com.blockium.tvbrowser.MainActivity"
+33-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:28:13-41
+34            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboardHidden|uiMode"
+34-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:33:13-113
+35            android:exported="true"
+35-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:29:13-36
+36            android:hardwareAccelerated="true"
+36-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:30:13-47
+37            android:screenOrientation="unspecified"
+37-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:32:13-52
+38            android:supportsPictureInPicture="true" >
+38-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:31:13-52
+39
+40            <!-- Standard launcher for regular phones/tablets -->
+41            <intent-filter>
+41-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:36:13-39:29
+42                <action android:name="android.intent.action.MAIN" />
+42-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:37:17-69
+42-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:37:25-66
+43
+44                <category android:name="android.intent.category.LAUNCHER" />
+44-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:38:17-77
+44-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:38:27-74
+45            </intent-filter>
+46
+47            <!-- Launcher for Android TV Leanback interface -->
+48            <intent-filter>
+48-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:42:13-45:29
+49                <action android:name="android.intent.action.MAIN" />
+49-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:37:17-69
+49-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:37:25-66
+50
+51                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+51-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:44:17-86
+51-->/Users/krishan/Documents/antigravity/tv-browser/app/src/main/AndroidManifest.xml:44:27-83
+52            </intent-filter>
+53        </activity>
+54    </application>
+55
+56</manifest>

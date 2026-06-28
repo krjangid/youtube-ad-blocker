@@ -1,0 +1,10 @@
+R_DEF: Internal format may change without notice
+local
+drawable ic_launcher
+drawable pill_bg
+drawable status_dot
+drawable toolbar_bg
+id rootContainer
+id webView
+layout activity_main
+mipmap ic_launcher

@@ -1,0 +1,46 @@
+[
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.blockium.tvbrowser.app-merged_res-4:/layout_activity_main.xml.flat",
+        "source": "com.blockium.tvbrowser.app-main-6:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/drawable_pill_bg.xml.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/drawable/pill_bg.xml"
+    },
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/drawable_ic_launcher.png.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/drawable/ic_launcher.png"
+    },
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/drawable_toolbar_bg.xml.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/drawable/toolbar_bg.xml"
+    },
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/layout_activity_main.xml.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/drawable_status_dot.xml.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/drawable/status_dot.xml"
+    },
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-merged_res-4:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "/Users/krishan/.gradle/daemon/8.0/com.blockium.tvbrowser.app-main-6:/mipmap-xhdpi/ic_launcher.png"
+    }
+]
