@@ -1,4 +1,0 @@
-#Fri Jun 26 22:15:44 IST 2026
-base.0=/Users/krishan/Documents/antigravity/tv-browser/app/build/intermediates/dex/debugAndroidTest/mergeProjectDexDebugAndroidTest/0/classes.dex
-path.0=0/classes.dex
-renamed.0=classes.dex

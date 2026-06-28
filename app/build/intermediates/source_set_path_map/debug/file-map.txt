@@ -1,7 +1,0 @@
-com.blockium.tvbrowser.app-pngs-0 /Users/krishan/Documents/antigravity/tv-browser/app/build/generated/res/pngs/debug
-com.blockium.tvbrowser.app-resValues-1 /Users/krishan/Documents/antigravity/tv-browser/app/build/generated/res/resValues/debug
-com.blockium.tvbrowser.app-packageDebugResources-2 /Users/krishan/Documents/antigravity/tv-browser/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
-com.blockium.tvbrowser.app-packageDebugResources-3 /Users/krishan/Documents/antigravity/tv-browser/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
-com.blockium.tvbrowser.app-merged_res-4 /Users/krishan/Documents/antigravity/tv-browser/app/build/intermediates/merged_res/debug
-com.blockium.tvbrowser.app-debug-5 /Users/krishan/Documents/antigravity/tv-browser/app/src/debug/res
-com.blockium.tvbrowser.app-main-6 /Users/krishan/Documents/antigravity/tv-browser/app/src/main/res

@@ -1,4 +1,0 @@
-com.blockium.tvbrowser.test.app-androidTest-0 /Users/krishan/Documents/antigravity/tv-browser/app/build/generated/res/resValues/androidTest/debug
-com.blockium.tvbrowser.test.app-mergeDebugAndroidTestResources-1 /Users/krishan/Documents/antigravity/tv-browser/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
-com.blockium.tvbrowser.test.app-mergeDebugAndroidTestResources-2 /Users/krishan/Documents/antigravity/tv-browser/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
-com.blockium.tvbrowser.test.app-merged_res-3 /Users/krishan/Documents/antigravity/tv-browser/app/build/intermediates/merged_res/debugAndroidTest
