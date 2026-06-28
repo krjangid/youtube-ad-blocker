@@ -78,7 +78,6 @@ public class MainActivity extends Activity {
         isTV = getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
 
         if (!isTV) {
-            // Normal status bar — YouTube needs this to show logo/search header correctly
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
 
@@ -100,23 +99,36 @@ public class MainActivity extends Activity {
             );
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-            // Hardcode the verified working mobile Chrome User Agent to bypass YouTube's WebView detection
             settings.setUserAgentString("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
         }
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                // Do NOT block network requests for ads! Blocking them causes YouTube's player to hang 
-                // and wait for timeouts, which causes the "video taking a lot of time" bug.
-                // We rely exclusively on the JavaScript ad skipper to skip ads instantly.
+                if (!isTV) {
+                    // Mobile: Disable network-level adblocking to prevent the player from hanging on timeouts
+                    return super.shouldInterceptRequest(view, request);
+                }
+
+                String url = request.getUrl().toString().toLowerCase();
+                for (String domain : AD_DOMAINS) {
+                    if (url.contains(domain)) {
+                        return createEmptyResource();
+                    }
+                }
+                for (String pattern : AD_PATH_PATTERNS) {
+                    if (url.contains(pattern)) {
+                        return createEmptyResource();
+                    }
+                }
                 return super.shouldInterceptRequest(view, request);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                scheduleAdBlockInjection(view);
+                // Inject the ad skipper and cleanup styles when the page finishes loading
+                injectAdSkipper(view);
             }
         });
 
@@ -132,7 +144,6 @@ public class MainActivity extends Activity {
                 originalOrientation = getRequestedOrientation();
                 originalSystemUiVisibility = getWindow().getDecorView().getSystemUiVisibility();
 
-                // Hide the WebView so that the customView (which now contains the full player DOM) can handle touches
                 webView.setVisibility(View.GONE);
 
                 fullscreenContainer = new FrameLayout(MainActivity.this);
@@ -165,13 +176,6 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void onProgressChanged(WebView view, int newProgress) {
-                if (newProgress >= 10) {
-                    injectAdSkipper(view);
-                }
-            }
-
-            @Override
             public boolean onConsoleMessage(android.webkit.ConsoleMessage consoleMessage) {
                 android.util.Log.d("WebViewConsole", consoleMessage.message() + " -- From line "
                                      + consoleMessage.lineNumber() + " of "
@@ -187,16 +191,10 @@ public class MainActivity extends Activity {
         if (isTV) {
             webView.loadUrl("https://www.youtube.com/tv");
         } else {
-            // Remove X-Requested-With to help prevent WebView detection
-            Map<String, String> extraHeaders = new HashMap<>();
-            extraHeaders.put("X-Requested-With", "");
-            webView.loadUrl("https://m.youtube.com", extraHeaders);
+            // Load standard youtube.com. The server-side redirect to m.youtube.com strips the X-Requested-With header,
+            // which prevents YouTube from detecting the WebView and hiding the logo/search bar!
+            webView.loadUrl("https://www.youtube.com");
         }
-    }
-
-    /** No longer needed but kept for compatibility */
-    private static String stripWebViewMarker(String userAgent) {
-        return "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
     }
 
     private void hideFullscreenView() {
@@ -228,7 +226,6 @@ public class MainActivity extends Activity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // Re-fit fullscreen overlay after rotation to landscape
         if (fullscreenContainer != null) {
             fullscreenContainer.requestLayout();
             getWindow().getDecorView().setSystemUiVisibility(IMMERSIVE_FLAGS);
@@ -246,121 +243,115 @@ public class MainActivity extends Activity {
         );
     }
 
-    private void scheduleAdBlockInjection(WebView view) {
-        injectAdSkipper(view);
-        view.postDelayed(() -> injectAdSkipper(view), 1000);
-        view.postDelayed(() -> injectAdSkipper(view), 3000);
-        view.postDelayed(() -> injectAdSkipper(view), 6000);
-    }
-
     private void injectAdSkipper(WebView view) {
-        String js =
-            "(function() {\n" +
-            "  // 1. Inject Chrome globals to bypass YouTube WebView detection and restore the header/logo/search bar\n" +
-            "  try {\n" +
-            "    if (!window.blockiumGlobalsInjected) {\n" +
-            "      window.blockiumGlobalsInjected = true;\n" +
-            "      if (!window.chrome) {\n" +
-            "        window.chrome = {\n" +
-            "          app: {},\n" +
-            "          runtime: {},\n" +
-            "          loadTimes: function() {},\n" +
-            "          csi: function() {}\n" +
-            "        };\n" +
-            "      }\n" +
-            "    }\n" +
-            "  } catch(e) {}\n" +
-            "  \n" +
-            "  // 2. Fix missing controls in fullscreen: force YouTube to request fullscreen on the player container instead of the raw video tag\n" +
-            "  try {\n" +
-            "    if (!window.blockiumFsFixed) {\n" +
-            "      window.blockiumFsFixed = true;\n" +
-            "      var origReqFs = Element.prototype.requestFullscreen || Element.prototype.webkitRequestFullscreen;\n" +
-            "      if (origReqFs) {\n" +
-            "        var fsOverride = function() {\n" +
-            "          var container = this.closest('.html5-video-player, #player-container-id, .player-container');\n" +
-            "          if (container && container !== this) {\n" +
-            "            return origReqFs.call(container);\n" +
-            "          }\n" +
-            "          return origReqFs.call(this);\n" +
-            "        };\n" +
-            "        HTMLVideoElement.prototype.requestFullscreen = fsOverride;\n" +
-            "        HTMLVideoElement.prototype.webkitRequestFullscreen = fsOverride;\n" +
-            "      }\n" +
-            "    }\n" +
-            "  } catch(e) {}\n" +
-            "  \n" +
-            "  // 3. Inject CSS to hide ads, Premium popups, and backdrops that hijack touch events\n" +
-            "  try {\n" +
-            "    if (!window.blockiumStyleInjected) {\n" +
-            "      var target = document.head || document.documentElement;\n" +
-            "      if (target) {\n" +
-            "        window.blockiumStyleInjected = true;\n" +
-            "        var style = document.createElement('style');\n" +
-            "        style.textContent = 'ytd-promoted-sparkles-web-renderer,ytd-companion-card-renderer," +
-            "          .ytd-player-legacy-desktop-watch-ads-action-api-renderer,.ytp-ad-overlay-container," +
-            "          .ytp-ad-message-container,ytd-action-companion-ad-renderer,#player-ads,#masthead-ad," +
-            "          ytd-ad-slot-renderer,.ytp-ad-progress-list,ytm-promoted-sparkles-web-renderer," +
-            "          ytm-companion-card-renderer,ytm-ad-slot-renderer,ytm-promoted-item,.ytm-ad-progress-list," +
-            "          .ytm-mealbar-promo-renderer,.ytp-ad-player-overlay,.ytp-ad-text,.ytp-ad-image," +
-            "          .ytp-ad-preview-container,.ytp-ad-action-interstitial," +
-            "          ytm-upsell-dialog-renderer, ytm-dialog, .ytm-brand-interstitial," +
-            "          ytm-consent-bump-v2-lightbox, ytm-bottom-sheet-renderer, ytm-promo-renderer," +
-            "          iron-overlay-backdrop, ytm-overlay-backdrop, .modal-backdrop" +
-            "          {display:none!important;visibility:hidden!important;pointer-events:none!important;}\\n" +
-            "          ytm-app-header-renderer { display: block !important; visibility: visible !important; }\\n" +
-            "          ytm-header-bar { display: flex !important; visibility: visible !important; }';\n" +
-            "        target.appendChild(style);\n" +
-            "      }\n" +
-            "    }\n" +
-            "  } catch(e) {}\n" +
-            "  \n" +
-            "  // 4. Ad-skipping and dialog-dismissal background loop\n" +
-            "  try {\n" +
-            "    if (!window.blockiumSkipInterval) {\n" +
-            "      window.blockiumSkipInterval = true;\n" +
-            "      var skipAd = function() {\n" +
-            "        try {\n" +
-            "          var adShowing = document.querySelector('.ad-showing,.ad-interrupting');\n" +
-            "          document.querySelectorAll('.ytp-ad-skip-button,.ytp-ad-skip-button-modern," +
-            "            .ytp-skip-ad-button,.ytp-ad-skip-button-slot,.ytp-ad-skip-button-container," +
-            "            .ytm-ad-skip-button,.ytm-ad-skip-button-renderer,.ytm-ad-skip-button-container').forEach(function(b) {\n" +
-            "            try { b.click(); } catch(e) {}\n" +
-            "          });\n" +
-            "          document.querySelectorAll('ytm-button-renderer').forEach(function(btn) {\n" +
-            "            var t = btn.innerText ? btn.innerText.toLowerCase() : '';\n" +
-            "            if (t.includes('skip') || t.includes('no thanks') || t.includes('dismiss') || t.includes('not now') || t.includes('छोड़ें') || t.includes('नहीं')) {\n" +
-            "              try { btn.querySelector('button').click(); } catch(e) {}\n" +
-            "            }\n" +
-            "          });\n" +
-            "          document.querySelectorAll('ytm-upsell-dialog-renderer, .ytm-brand-interstitial, ytm-dialog, ytm-bottom-sheet-renderer, iron-overlay-backdrop, ytm-overlay-backdrop, .modal-backdrop').forEach(function(d) {\n" +
-            "            try { d.remove(); } catch(e) {}\n" +
-            "          });\n" +
-            "          var video = document.querySelector('video.html5-main-video,#movie_player video,.html5-video-player video');\n" +
-            "          if (!video) return;\n" +
-            "          if (adShowing) {\n" +
-            "            if (!window.isAdSpeededUp) {\n" +
-            "              window.originalPlaybackRate = video.playbackRate || 1;\n" +
-            "              window.originalMuted = video.muted;\n" +
-            "              window.isAdSpeededUp = true;\n" +
-            "            }\n" +
-            "            video.muted = true;\n" +
-            "            video.playbackRate = 16;\n" +
-            "            if (!isNaN(video.duration) && isFinite(video.duration) && video.duration > 0) {\n" +
-            "              video.currentTime = video.duration - 0.05;\n" +
-            "            }\n" +
-            "          } else if (window.isAdSpeededUp) {\n" +
-            "            video.playbackRate = window.originalPlaybackRate || 1;\n" +
-            "            video.muted = window.originalMuted || false;\n" +
-            "            window.isAdSpeededUp = false;\n" +
-            "            if (video.paused) { try { video.play(); } catch(e) {} }\n" +
-            "          }\n" +
-            "        } catch(err) {}\n" +
-            "      };\n" +
-            "      setInterval(skipAd, 200);\n" +
-            "    }\n" +
-            "  } catch(e) {}\n" +
-            "})();";
+        String js = "javascript:(function() {\n" +
+                "  if (window.blockiumActive) return;\n" +
+                "  window.blockiumActive = true;\n" +
+                "  \n" +
+                "  // 1. Visual cleanup CSS (hides sponsor grids, overlays, ads, and overlay dialogs)\n" +
+                "  const style = document.createElement('style');\n" +
+                "  style.textContent = `\n" +
+                "    ytd-promoted-sparkles-web-renderer, ytd-companion-card-renderer,\n" +
+                "    .ytd-player-legacy-desktop-watch-ads-action-api-renderer, \n" +
+                "    .ytp-ad-overlay-container, .ytp-ad-message-container,\n" +
+                "    ytd-action-companion-ad-renderer, #player-ads, #masthead-ad,\n" +
+                "    ytd-ad-slot-renderer, .ytp-ad-progress-list,\n" +
+                "    ytm-promoted-sparkles-web-renderer, ytm-companion-card-renderer,\n" +
+                "    ytm-ad-slot-renderer, ytm-promoted-item, .ytm-ad-progress-list,\n" +
+                "    ytm-inline-ad-renderer, .ytm-inline-ad-renderer,\n" +
+                "    ytm-playlist-bar, .ytm-playlist-bar, ytm-playlist-bar-renderer,\n" +
+                "    ytm-mealbar-promo-renderer, .ytm-mealbar-promo-renderer,\n" +
+                "    ytm-upsell-dialog-renderer, ytm-dialog, .ytm-brand-interstitial,\n" +
+                "    ytm-consent-bump-v2-lightbox, ytm-bottom-sheet-renderer, ytm-promo-renderer,\n" +
+                "    iron-overlay-backdrop, ytm-overlay-backdrop, .modal-backdrop,\n" +
+                "    .ad-showing video, .ad-showing .html5-video-container,\n" +
+                "    .ad-showing .ytp-ad-player-overlay, .ad-showing .video-ads,\n" +
+                "    .ad-interrupting video, .ad-interrupting .html5-video-container {\n" +
+                "      display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;\n" +
+                "    }\n" +
+                "  `;\n" +
+                "  document.head.appendChild(style);\n" +
+                "  \n" +
+                "  // 2. Fix missing controls in fullscreen: force YouTube to request fullscreen on the player container instead of the video tag\n" +
+                "  var origReqFs = Element.prototype.requestFullscreen || Element.prototype.webkitRequestFullscreen;\n" +
+                "  if (origReqFs) {\n" +
+                "    var fsOverride = function() {\n" +
+                "      var container = this.closest('.html5-video-player, #player-container-id, .player-container');\n" +
+                "      if (container && container !== this) {\n" +
+                "        return origReqFs.call(container);\n" +
+                "      }\n" +
+                "      return origReqFs.call(this);\n" +
+                "    };\n" +
+                "    HTMLVideoElement.prototype.requestFullscreen = fsOverride;\n" +
+                "    HTMLVideoElement.prototype.webkitRequestFullscreen = fsOverride;\n" +
+                "  }\n" +
+                "  \n" +
+                "  // 3. Auto-skip ads and dismiss popups\n" +
+                "  const skipAd = function() {\n" +
+                "    const adShowing = document.querySelector('.ad-showing, .ad-interrupting');\n" +
+                "    if (adShowing) {\n" +
+                "      const skipButtons = document.querySelectorAll('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button, .ytp-ad-skip-button-slot, .ytm-ad-skip-button, .ytm-ad-skip-button-renderer, .ytm-ad-skip-button-container');\n" +
+                "      if (skipButtons && skipButtons.length > 0) {\n" +
+                "        skipButtons.forEach(b => b.click());\n" +
+                "      }\n" +
+                "      \n" +
+                "      const video = document.querySelector('video.html5-main-video');\n" +
+                "      if (video) {\n" +
+                "        if (!window.isAdSpeededUp) {\n" +
+                "          if (video.playbackRate !== 16) window.originalPlaybackRate = video.playbackRate;\n" +
+                "          window.originalMuted = video.muted;\n" +
+                "          window.isAdSpeededUp = true;\n" +
+                "        }\n" +
+                "        video.muted = true;\n" +
+                "        video.playbackRate = 16;\n" +
+                "        if (!isNaN(video.duration) && isFinite(video.duration)) {\n" +
+                "          video.currentTime = video.duration;\n" +
+                "        } else {\n" +
+                "          video.currentTime = 9999;\n" +
+                "        }\n" +
+                "      }\n" +
+                "    } else {\n" +
+                "      const video = document.querySelector('video.html5-main-video');\n" +
+                "      if (video && window.isAdSpeededUp) {\n" +
+                "        video.playbackRate = window.originalPlaybackRate || 1;\n" +
+                "        video.muted = window.originalMuted || false;\n" +
+                "        window.isAdSpeededUp = false;\n" +
+                "      }\n" +
+                "    }\n" +
+                "    \n" +
+                "    // Dismiss overlay popups that pause the video\n" +
+                "    document.querySelectorAll('ytm-upsell-dialog-renderer, .ytm-brand-interstitial, ytm-dialog, ytm-bottom-sheet-renderer').forEach(function(d) {\n" +
+                "      try { d.remove(); } catch(e) {}\n" +
+                "    });\n" +
+                "  };\n" +
+                "  \n" +
+                "  setInterval(skipAd, 250);\n" +
+                "  \n" +
+                (isTV ? "" :
+                "  // 4. Setup Swipe-Down gesture touch listener on Mobile player\n" +
+                "  const setupSwipeDown = function() {\n" +
+                "    const player = document.querySelector('#movie_player, .html5-video-player');\n" +
+                "    if (player && !player.dataset.swipeHooked) {\n" +
+                "      player.dataset.swipeHooked = 'true';\n" +
+                "      let startX = 0;\n" +
+                "      let startY = 0;\n" +
+                "      player.addEventListener('touchstart', function(e) {\n" +
+                "        startX = e.touches[0].clientX;\n" +
+                "        startY = e.touches[0].clientY;\n" +
+                "      }, { passive: true });\n" +
+                "      player.addEventListener('touchend', function(e) {\n" +
+                "        const endX = e.changedTouches[0].clientX;\n" +
+                "        const endY = e.changedTouches[0].clientY;\n" +
+                "        const diffX = endX - startX;\n" +
+                "        const diffY = endY - startY;\n" +
+                "        if (diffY > 80 && Math.abs(diffY) > Math.abs(diffX) * 1.5) {\n" +
+                "          window.history.back();\n" +
+                "        }\n" +
+                "      }, { passive: true });\n" +
+                "    }\n" +
+                "  };\n" +
+                "  setInterval(setupSwipeDown, 500);\n" +
+                "})();";
         view.evaluateJavascript(js, null);
     }
 
@@ -379,11 +370,6 @@ public class MainActivity extends Activity {
                 return true;
             }
         }
-
-        if (fullscreenContainer != null && fullscreenContainer.dispatchKeyEvent(event)) {
-            return true;
-        }
-
         return super.onKeyDown(keyCode, event);
     }
 
